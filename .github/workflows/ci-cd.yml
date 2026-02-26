@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config -q
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          id: scaler.sh
+
+      - name: Validate Prometheus Config
+        uses: stefanprodan/promtool-actions@v1
+        with:
+          command: check config prometheus.yml
+
+  deploy:
+    needs: lint-and-validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Placeholder
+        run: |
+          echo "Deploying to production server..."
+          # Add your deployment steps here, e.g.:
+          # - SSH to server and pull latest changes
+          # - docker compose up -d
